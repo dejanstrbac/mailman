@@ -22,7 +22,7 @@ defmodule MailmanTest do
   def testing_email do
     %Mailman.Email{
       subject: "Hello Mailman!",
-      from: "mailman@elixir.com",
+      from: "Mailman Tester <mailman@elixir.com>",
       reply_to: "reply@example.com",
       to: [ "ciemniewski.kamil@gmail.com" ],
       cc: [ "testy2#tester1234.com", "abcd@defd.com" ],
@@ -75,8 +75,8 @@ Pictures!
   test "encodes attachements properly" do
     {:ok, message} = Task.await MyApp.Mailer.deliver(email_with_attachments)
     email = Mailman.Email.parse! message
-    assert email.from == email_with_attachments.from
-    assert email.reply_to == email_with_attachments.reply_to
+    assert email.from == Mailman.Render.normalize_address(email_with_attachments.from)
+    assert email.reply_to == Mailman.Render.normalize_address(email_with_attachments.reply_to)
     assert email.to   == Mailman.Render.normalize_addresses(email_with_attachments.to)
     assert email.subject   == email_with_attachments.subject
     assert email.cc   == Mailman.Render.normalize_addresses(email_with_attachments.cc)
@@ -158,7 +158,7 @@ Pictures!
     {:ok, message} = Task.await(MyApp.ExternalTextMailer.deliver(
       email_with_external_text))
     email = Mailman.Email.parse! message
-    assert email.text == 
+    assert email.text ==
            EEx.eval_file(email_with_external_text.text,
                          email_with_external_text.data)
   end
@@ -177,7 +177,7 @@ Pictures!
         }
     end
   end
-  
+
   def email_with_external_html do
     %Mailman.Email{
       subject: "Hello Mailman!",
@@ -198,7 +198,7 @@ Pictures!
     {:ok, message} = Task.await(MyApp.ExternalHTMLMailer.deliver(
       email_with_external_html))
     email = Mailman.Email.parse! message
-    assert email.html == 
+    assert email.html ==
            EEx.eval_file(email_with_external_html.html,
                          email_with_external_html.data)
   end
@@ -220,7 +220,7 @@ Pictures!
         }
     end
   end
-  
+
   def email_with_template_paths do
     %Mailman.Email{
       subject: "Hello Mailman!",
@@ -236,12 +236,12 @@ Pictures!
       html: "email.html.eex"
       }
   end
-  
+
   test "should load email parts from external file based on x_file_path" do
     {:ok, message} = Task.await(MyApp.ExternalTemplatesMailer.deliver(
       email_with_template_paths))
     email = Mailman.Email.parse! message
-    assert email.html == 
+    assert email.html ==
            EEx.eval_file("test/templates/#{email_with_template_paths.html}",
                          email_with_template_paths.data)
     assert email.text ==

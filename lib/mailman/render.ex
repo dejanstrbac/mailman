@@ -88,10 +88,10 @@ defmodule Mailman.Render do
 
   def headers_for(email) do
     [
-      { "From", email.from },
+      { "From", email.from |> normalize_address },
       { "To", email.to |> normalize_addresses |> Enum.join(",") },
       { "Subject", email.subject },
-      { "reply-to", email.reply_to },
+      { "reply-to", email.reply_to |> normalize_address },
       { "Cc",  email.cc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list },
       { "Bcc", email.bcc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list }
     ] |> Enum.filter fn(i) -> elem(i, 1) != [] end
@@ -109,20 +109,22 @@ defmodule Mailman.Render do
     [ value ]
   end
 
-  def normalize_addresses(addresses) when is_list(addresses) do
-    addresses |> Enum.map fn(address) ->
-      case address |> String.split("<") |> Enum.count > 1 do
-        true -> address
-        false ->
-          name = address |>
-            String.split("@") |>
-            List.first |>
-            String.split(~r/([^\w\s]|_)/) |>
-            Enum.map(&String.capitalize/1) |>
-            Enum.join " "
-          "#{name} <#{address}>"
-      end
+  def normalize_address(address) do
+    if address |> String.contains?("<") do
+      address
+    else
+      name = address |>
+        String.split("@") |>
+        List.first |>
+        String.split(~r/([^\w\s]|_)/) |>
+        Enum.map(&String.capitalize/1) |>
+        Enum.join " "
+      "#{name} <#{address}>"
     end
+  end
+
+  def normalize_addresses(addresses) when is_list(addresses) do
+    addresses |> Enum.map &normalize_address(&1)
   end
 
   def compile_parts(email, composer) do
