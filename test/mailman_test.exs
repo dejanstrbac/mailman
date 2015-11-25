@@ -44,8 +44,8 @@ defmodule MailmanTest do
   def email_with_attachments do
     %Mailman.Email{
       subject: "Pictures!",
-      from: "mailman@elixir.com",
-      reply_to: "reply@example.com",
+      from: "Mailman Tester <mailman@elixir.com>",
+      reply_to: "Pera <reply@example.com>",
       to: [ "ciemniewski.kamil@gmail.com", "kamil@endpoint.com" ],
       cc: [],
       bcc: [],

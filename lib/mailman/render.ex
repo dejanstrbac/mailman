@@ -87,21 +87,13 @@ defmodule Mailman.Render do
   end
 
   def headers_for(email) do
-    headers = []
-
-    if email |> Map.has_key?(:reply_to), do:
-      headers = [ { "Reply-To", email.reply_to |> normalize_address } | headers ]
-
-    if email |> Map.has_key?(:bcc), do:
-      headers = [ { "Bcc", email.bcc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list } | headers ]
-
-    if email |> Map.has_key?(:cc), do:
-      headers = [ { "Cc",  email.cc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list } | headers ]
-
     [
       { "From", email.from |> normalize_address },
+      { "Reply-To", email.reply_to |> normalize_address },
       { "To", email.to |> normalize_addresses |> Enum.join(",") },
-      { "Subject", email.subject } | headers
+      { "Subject", email.subject },
+      { "Cc",  email.cc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list },
+      { "Bcc", email.bcc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list }
     ] |> Enum.filter fn(i) -> elem(i, 1) != [] end
   end
 
