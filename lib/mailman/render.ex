@@ -110,16 +110,21 @@ defmodule Mailman.Render do
   end
 
   def normalize_address(address) do
-    if address |> String.contains?("<") do
-      address
+    address = address || "" |> String.strip
+    if String.length(address) == 0 do
+      ""
     else
-      name = address |>
-        String.split("@") |>
-        List.first |>
-        String.split(~r/([^\w\s]|_)/) |>
-        Enum.map(&String.capitalize/1) |>
-        Enum.join " "
-      "#{name} <#{address}>"
+      if String.contains?(address, "<") do
+        address
+      else
+        name = address |>
+          String.split("@") |>
+          List.first |>
+          String.split(~r/([^\w\s]|_)/) |>
+          Enum.map(&String.capitalize/1) |>
+          Enum.join " "
+        "#{name} <#{address}>"
+      end
     end
   end
 
