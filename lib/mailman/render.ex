@@ -87,13 +87,21 @@ defmodule Mailman.Render do
   end
 
   def headers_for(email) do
+    headers = []
+
+    if email |> Map.has_key?(:reply_to), do:
+      headers = [ { "Reply-To", email.reply_to |> normalize_address } | headers ]
+
+    if email |> Map.has_key?(:bcc), do:
+      headers = [ { "Bcc", email.bcc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list } | headers ]
+
+    if email |> Map.has_key?(:cc), do:
+      headers = [ { "Cc",  email.cc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list } | headers ]
+
     [
       { "From", email.from |> normalize_address },
       { "To", email.to |> normalize_addresses |> Enum.join(",") },
-      { "Subject", email.subject },
-      { "reply-to", email.reply_to |> normalize_address },
-      { "Cc",  email.cc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list },
-      { "Bcc", email.bcc |> as_list |> normalize_addresses |> Enum.join(", ") |> as_list }
+      { "Subject", email.subject } | headers
     ] |> Enum.filter fn(i) -> elem(i, 1) != [] end
   end
 
@@ -110,7 +118,7 @@ defmodule Mailman.Render do
   end
 
   def normalize_address(address) do
-    address = address || "" |> String.strip
+    address = (address || "") |> String.strip
     if String.length(address) == 0 do
       ""
     else
